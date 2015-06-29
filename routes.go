@@ -1,9 +1,6 @@
 package main
 
-import (
-	"github.com/byronmansfield/acct_service/api"
-	"net/http"
-)
+import "net/http"
 
 type Route struct {
 	Name        string
