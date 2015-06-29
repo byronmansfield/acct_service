@@ -1,13 +1,10 @@
 package main
 
-import (
-	"fmt"
-	"github.com/byronmansfield/acct_service/models/todo"
-)
+import "fmt"
 
 var currentId int
 
-var todos todo.Todos
+var todos Todos
 
 func init() {
 	RepoCreatedTodo(Todo{Name: "Write presentation"})
