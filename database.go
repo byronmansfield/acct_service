@@ -2,12 +2,12 @@ package main
 
 import (
 	"fmt"
-	"github.com/demandbase/acct_service/models"
+	"github.com/bm/acct_service/todo"
 )
 
 var currentId int
 
-var todos Todos
+var todos todo.Todos
 
 func init() {
 	RepoCreatedTodo(Todo{Name: "Write presentation"})
