@@ -2,7 +2,7 @@ package main
 
 import (
 	"fmt"
-	"github.com/byronmansfield/acct_service/api/todo"
+	"github.com/byronmansfield/acct_service/models/todo"
 )
 
 var currentId int
