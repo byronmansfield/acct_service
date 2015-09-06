@@ -9,11 +9,27 @@ import (
 	"time"
 )
 
-func Index(w http.ResponseWriter, r *http.Request) {
-	fmt.Fprintln(w, "Welcome!")
+// API root
+func Index(w http.ResponseWriter, r *http.Request) *apiError {
+	fmt.Fprintln(w, "Hello from Account Service")
+
+	fmt.Fprintln(w, "You hit %v", r.URL.Path)
+	// response "404 not found" on every undefined
+	// URL pattern handler
+	// if r.URL.Path != "/" {
+	// 	return &apiError{
+	// 		"indexHandler url",
+	// 		errors.New("Not Found"),
+	// 		"Not Found",
+	// 		http.StatusNotFound,
+	// 	}
+	// }
+
+	return nil
 }
 
-func TodoIndex(w http.ResponseWriter, r *http.Request) {
+// Handles all GET requests for todos and returns all tasks in database
+func TodoIndex(w http.ResponseWriter, r *http.Request) *apiError {
 	var err error
 
 	// connect to db
@@ -48,15 +64,18 @@ func TodoIndex(w http.ResponseWriter, r *http.Request) {
 	js, err := json.Marshal(todo)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return nil
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(js)
 
+	return nil
+
 }
 
-func TodoShow(w http.ResponseWriter, r *http.Request) {
+// Handle GET requests for a specific task id
+func TodoShow(w http.ResponseWriter, r *http.Request) *apiError {
 	var err error
 
 	// connect to db
@@ -91,14 +110,18 @@ func TodoShow(w http.ResponseWriter, r *http.Request) {
 	js, err := json.Marshal(todo)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
-		return
+		return nil
 	}
 
 	w.Header().Set("Content-Type", "application/json")
 	w.Write(js)
+
+	return nil
+
 }
 
-func TodoCreate(w http.ResponseWriter, r *http.Request) {
+// Handles POST requests for creating new task in todos
+func TodoCreate(w http.ResponseWriter, r *http.Request) *apiError {
 	var todo Todo
 
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
@@ -140,5 +163,7 @@ func TodoCreate(w http.ResponseWriter, r *http.Request) {
 	if err := json.NewEncoder(w).Encode(todo); err != nil {
 		panic(err)
 	}
+
+	return nil
 
 }

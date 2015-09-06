@@ -6,10 +6,6 @@ import (
 	"os"
 )
 
-var currentId int
-
-var todos Todos
-
 func dbConnect() *sql.DB {
 	datname := os.Getenv("PGDATABASE")
 	sslmode := os.Getenv("PGSSLMODE")

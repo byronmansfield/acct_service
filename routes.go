@@ -1,39 +1,28 @@
 package main
 
-import "net/http"
-
-type Route struct {
-	Name        string
-	Method      string
-	Pattern     string
-	HandlerFunc http.HandlerFunc
-}
-
-type Routes []Route
-
 var routes = Routes{
 	Route{
 		"Index",
 		"GET",
 		"/",
-		Index,
+		ApiHandler{Index},
 	},
 	Route{
 		"TodoIndex",
 		"GET",
 		"/todos",
-		TodoIndex,
+		ApiHandler{TodoIndex},
 	},
 	Route{
 		"TodoShow",
 		"GET",
 		"/todos/{todoId}",
-		TodoShow,
+		ApiHandler{TodoShow},
 	},
 	Route{
 		"TodoCreate",
 		"POST",
 		"/todos",
-		TodoCreate,
+		ApiHandler{TodoCreate},
 	},
 }

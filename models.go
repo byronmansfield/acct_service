@@ -1,6 +1,31 @@
 package main
 
-import "time"
+import (
+	"net/http"
+	"time"
+)
+
+// apiError define structure of API error
+type apiError struct {
+	Tag     string `json:"-"`
+	Error   error  `json:"-"`
+	Message string `json:"error"`
+	Code    int    `json:"code"`
+}
+
+// ApiHandler global API mux
+type ApiHandler struct {
+	Handler func(w http.ResponseWriter, r *http.Request) *apiError
+}
+
+type Route struct {
+	Name    string
+	Method  string
+	Pattern string
+	ApiHandler
+}
+
+type Routes []Route
 
 type Todo struct {
 	Id        int       `json:"id"`
@@ -11,10 +36,4 @@ type Todo struct {
 
 type Todos []Todo
 
-// apiError define structure of API error
-type apiError struct {
-	Tag     string `json:"-"`
-	Error   error  `json:"-"`
-	Message string `json:"error"`
-	Code    int    `json:"code"`
-}
+var todos Todos
