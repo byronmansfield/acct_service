@@ -1,38 +1,35 @@
 package main
 
-import "fmt"
+import (
+	"database/sql"
+	_ "github.com/lib/pq"
+	"os"
+)
 
 var currentId int
 
 var todos Todos
 
-func init() {
-	RepoCreatedTodo(Todo{Name: "Write presentation"})
-	RepoCreatedTodo(Todo{Name: "Host meetup"})
-}
+func dbConnect() *sql.DB {
+	datname := os.Getenv("PGDATABASE")
+	sslmode := os.Getenv("PGSSLMODE")
 
-func RepoFindTodo(id int) Todo {
-	for _, t := range todos {
-		if t.Id == id {
-			return t
-		}
+	if datname == "" {
+		os.Setenv("PGDATABASE", "tasks")
 	}
-	return Todo{}
-}
 
-func RepoCreatedTodo(t Todo) Todo {
-	currentId += 1
-	t.Id = currentId
-	todos = append(todos, t)
-	return t
-}
-
-func RepoDestroyTodo(id int) error {
-	for i, t := range todos {
-		if t.Id == id {
-			todos = append(todos[:i], todos[i+1:]...)
-			return nil
-		}
+	if sslmode == "" {
+		os.Setenv("PGSSLMODE", "disable")
 	}
-	return fmt.Errorf("Could not find Todo with id of %d to delete", id)
+
+	conn, err := sql.Open("postgres", "")
+	checkErr(err)
+
+	return conn
+}
+
+func checkErr(err error) {
+	if err != nil {
+		panic(err)
+	}
 }

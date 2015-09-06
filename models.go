@@ -10,3 +10,11 @@ type Todo struct {
 }
 
 type Todos []Todo
+
+// apiError define structure of API error
+type apiError struct {
+	Tag     string `json:"-"`
+	Error   error  `json:"-"`
+	Message string `json:"error"`
+	Code    int    `json:"code"`
+}

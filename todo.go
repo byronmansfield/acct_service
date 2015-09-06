@@ -6,9 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"net/http"
-	"strconv"
-
-	"github.com/gorilla/mux"
+	"time"
 )
 
 func Index(w http.ResponseWriter, r *http.Request) {
@@ -16,44 +14,93 @@ func Index(w http.ResponseWriter, r *http.Request) {
 }
 
 func TodoIndex(w http.ResponseWriter, r *http.Request) {
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusOK)
-
-	if err := json.NewEncoder(w).Encode(todos); err != nil {
-		panic(err)
-	}
-}
-
-func TodoShow(w http.ResponseWriter, r *http.Request) {
-	vars := mux.Vars(r)
-	var todoId int
 	var err error
 
-	if todoId, err = strconv.Atoi(vars["todoId"]); err != nil {
+	// connect to db
+	db := dbConnect()
+	defer db.Close()
+
+	rows, err := db.Query("SELECT * FROM tasks")
+
+	todo := make([]Todo, 0)
+
+	if err != nil {
 		panic(err)
 	}
 
-	todo := RepoFindTodo(todoId)
+	for rows.Next() {
 
-	if todo.Id > 0 {
-		w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-		w.WriteHeader(http.StatusOK)
-		if err := json.NewEncoder(w).Encode(todo); err != nil {
+		var id int
+		var name string
+		var completed bool
+		var due time.Time
+
+		if err := rows.Scan(&id, &name, &completed, &due); err != nil {
 			panic(err)
 		}
+		todo = append(todo, Todo{Id: id, Name: name, Completed: completed, Due: due})
+	}
+
+	if err := rows.Err(); err != nil {
+		panic(err)
+	}
+
+	js, err := json.Marshal(todo)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 
-	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
-	w.WriteHeader(http.StatusNotFound)
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(js)
 
-	if err := json.NewEncoder(w).Encode(jsonErr{Code: http.StatusNotFound, Text: "Not Found"}); err != nil {
+}
+
+func TodoShow(w http.ResponseWriter, r *http.Request) {
+	var err error
+
+	// connect to db
+	db := dbConnect()
+	defer db.Close()
+
+	rows, err := db.Query("SELECT * FROM tasks")
+
+	todo := make([]Todo, 0)
+
+	if err != nil {
 		panic(err)
 	}
+
+	for rows.Next() {
+
+		var id int
+		var name string
+		var completed bool
+		var due time.Time
+
+		if err := rows.Scan(&id, &name, &completed, &due); err != nil {
+			panic(err)
+		}
+		todo = append(todo, Todo{Id: id, Name: name, Completed: completed, Due: due})
+	}
+
+	if err := rows.Err(); err != nil {
+		panic(err)
+	}
+
+	js, err := json.Marshal(todo)
+	if err != nil {
+		http.Error(w, err.Error(), http.StatusInternalServerError)
+		return
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.Write(js)
 }
 
 func TodoCreate(w http.ResponseWriter, r *http.Request) {
 	var todo Todo
+
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
 
 	if err != nil {
@@ -73,12 +120,25 @@ func TodoCreate(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	t := RepoCreatedTodo(todo)
+	// connect to db
+	db := dbConnect()
+	defer db.Close()
+
+	// Insert data to database
+	stmt, err := db.Prepare("INSERT INTO tasks(name, completed, due) VALUES ($1, $2, $3)")
+	if err != nil {
+		panic(err)
+	}
+	_, err = stmt.Exec(todo.Name, todo.Completed, todo.Due)
+	if err != nil {
+		panic(err)
+	}
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(http.StatusCreated)
 
-	if err := json.NewEncoder(w).Encode(t); err != nil {
+	if err := json.NewEncoder(w).Encode(todo); err != nil {
 		panic(err)
 	}
+
 }
